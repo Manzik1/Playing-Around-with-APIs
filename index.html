@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobHunt</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- LOGIN / WELCOME SCREEN -->
+    <div id="authScreen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1 class="logo-large">Job<span class="highlight">Hunt</span></h1>
+                <p class="auth-subtitle">Professional Career Discovery Platform</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="userNameInput">Candidate Name</label>
+                        <input type="text" id="userNameInput" placeholder="e.g., Kevin" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apiKeyInput">API Key</label>
+                        <input type="text" id="apiKeyInput" placeholder="Enter JSearch API Key">
+                        <small>Leave empty to use the Default Key</small>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">Start Session</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Powered by RapidAPI & JSearch</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP SCREEN -->
+    <div id="appScreen" class="screen">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-wrapper">
+                    <h1 class="logo">Job<span class="highlight">Hunt</span></h1>
+                </div>
+                <div class="user-info">
+                    <span id="userGreeting">Hello, User</span>
+                    <button id="logoutBtn" class="btn-text">Sign out</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <!-- Search Bar Section -->
+            <section class="search-section">
+                <form id="searchForm" class="search-bar-wrapper">
+                    <div class="input-group main-search">
+                        <label>Keywords</label>
+                        <div class="input-icon-wrapper">
+                            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="queryInput" placeholder="Job title, skills, or company" required>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Location</label>
+                        <div class="input-icon-wrapper">
+                            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <select id="countrySelect" class="filter-select"></select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Date Posted</label>
+                        <div class="input-icon-wrapper">
+                            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <select id="dateSelect" class="filter-select"></select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary search-btn">Search</button>
+                </form>
+                <div class="filters-row">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="remoteCheckbox">
+                        <span class="checkmark"></span>
+                        Remote Only
+                    </label>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section">
+                <!-- States -->
+                <div id="loadingState" class="state-message" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Scanning job boards...</p>
+                </div>
+
+                <div id="errorState" class="state-message error" style="display: none;">
+                    <h3>Unable to fetch jobs</h3>
+                    <p id="errorMessage">Please check your connection or API key.</p>
+                </div>
+
+                <div id="emptyState" class="state-message">
+                    <div class="empty-icon-container">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    </div>
+                    <h2>Start your search</h2>
+                    <p>Enter a job title like "Software Engineer" or "Project Manager" to begin.</p>
+                    <div id="debugInfo" style="display:none; margin-top:10px; font-size:0.8rem; color:#666;"></div>
+                </div>
+
+                <!-- Job List -->
+                <div id="resultsContainer" class="results-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- DETAILS MODAL -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 id="detailsTitle">Job Details</h2>
+                <button class="close-btn" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            
+            <div id="detailsLoading" class="modal-loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Loading full job details...</p>
+            </div>
+
+            <div id="detailsContent" class="modal-body">
+                <!-- Injected via JS -->
+            </div>
+            
+            <!-- Salary Section -->
+            <div class="salary-section" id="salarySection" style="display:none;">
+                <div class="salary-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a4.5 4.5 0 0 0 0 9H14.5a4.5 4.5 0 0 1 0 9H6"></path></svg>
+                    <h3>Salary Estimator</h3>
+                </div>
+                <p class="salary-subtitle">Get an estimated salary range for this role based on market data.</p>
+                <div class="salary-actions">
+                    <button id="checkSalaryBtn" class="btn-secondary">Check Estimation</button>
+                    <div id="salaryResult" class="salary-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
